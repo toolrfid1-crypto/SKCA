@@ -14,20 +14,8 @@ from pydantic import BaseModel, Field
 class LoginRequest(BaseModel):
     #: อีเมลของผู้ใช้ -- ตรงกับค่าในคอลัมน์ "User" ของ sheet Mail
     #: (คอลัมน์ชื่อ User แต่ข้อมูลข้างในเป็นอีเมล เช่น somchai.k@kubota.com)
+    #: ล็อกอินด้วยอีเมลอย่างเดียว ไม่มีรหัสผ่าน
     email: str
-
-    #: ใช้เมื่อ REQUIRE_PASSWORD=true เท่านั้น ปกติหน้าเว็บไม่ส่งค่านี้มา
-    password: str = ""
-
-
-class AuthConfig(BaseModel):
-    """
-    บอกหน้าเว็บว่าต้องแสดงช่องรหัสผ่านไหม
-
-    frontend เรียก endpoint นี้ก่อนวาดฟอร์ม login
-    ทำให้เปิด/ปิดการใช้รหัสผ่านได้จาก .env ฝั่งเดียว ไม่ต้องแก้โค้ด React
-    """
-    require_password: bool
 
 
 class CurrentUser(BaseModel):
@@ -49,6 +37,12 @@ class LoginResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: CurrentUser
+
+
+class ProfilePhoto(BaseModel):
+    """รูป + ชื่อพนักงานที่ดึงจาก HR API (อาจว่างถ้าหาไม่เจอ)"""
+    picture_url: str | None = None
+    full_name: str | None = None
 
 
 # ============================================================================

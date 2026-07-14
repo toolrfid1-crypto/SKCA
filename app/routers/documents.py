@@ -2,7 +2,7 @@
 routers/documents.py -- ตาราง Patrol Document และ Verify Torque
 
 โครงของทุก endpoint จะเหมือนกันหมด:
-  1. ดึงข้อมูลดิบจาก SQL
+  1. ดึงข้อมูลดิบจาก SQL      (database.fetch_dataframe + ค่า SQL ใน database.py)
   2. ส่งเข้า permissions.build_*_docs พร้อมสิทธิ์ของ user
   3. คืนเฉพาะแถวที่ user คนนั้นมีสิทธิ์เห็น
 """
@@ -11,8 +11,7 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app import excel_store, permissions, queries
-from app.database import execute, fetch_dataframe, safe_column
+from app import database, excel_store, permissions
 from app.schemas import (
     ActionResponse,
     ApproveMultiplePatrolRequest,
@@ -34,7 +33,7 @@ router = APIRouter(prefix="/api/documents", tags=["documents"])
 
 def _load_patrol_docs(user: CurrentUser) -> list[dict]:
     """โหลด + กรองสิทธิ์ -- ใช้ร่วมกันทั้งตอน GET และตอนตรวจสิทธิ์ก่อน approve"""
-    df = fetch_dataframe(queries.PATROL_PENDING)
+    df = database.fetch_dataframe(database.PATROL_PENDING)
     return permissions.build_patrol_docs(
         df,
         is_admin=user.is_admin,
@@ -65,11 +64,11 @@ def _assert_can_approve_patrol(user: CurrentUser, document: str, column: str) ->
 
 
 def _approve_patrol_row(document: str, position: str) -> None:
-    sql_column = queries.resolve_column(position, queries.PATROL_COLUMN_MAP)
-    sql_column = safe_column(sql_column, queries.PATROL_ALLOWED_COLUMNS)
+    sql_column = database.resolve_column(position, database.PATROL_COLUMN_MAP)
+    sql_column = database.safe_column(sql_column, database.PATROL_ALLOWED_COLUMNS)
 
-    execute(
-        queries.PATROL_APPROVE.format(column=sql_column),
+    database.execute(
+        database.PATROL_APPROVE.format(column=sql_column),
         {"value": "approve", "document": document},
     )
 
@@ -109,7 +108,7 @@ def approve_multiple_patrol(
 # ============================================================================
 
 def _load_verify_torque_docs(user: CurrentUser) -> list[dict]:
-    df = fetch_dataframe(queries.VERIFY_TORQUE_PENDING)
+    df = database.fetch_dataframe(database.VERIFY_TORQUE_PENDING)
     return permissions.build_verify_torque_docs(
         df,
         is_admin=user.is_admin,
@@ -139,11 +138,11 @@ def approve_verify_torque(
             detail=f"คุณไม่มีสิทธิ์ approve '{payload.document}' ในตำแหน่ง '{payload.column}'",
         )
 
-    sql_column = queries.resolve_column(payload.column, queries.TORQUE_COLUMN_MAP)
-    sql_column = safe_column(sql_column, queries.TORQUE_ALLOWED_COLUMNS)
+    sql_column = database.resolve_column(payload.column, database.TORQUE_COLUMN_MAP)
+    sql_column = database.safe_column(sql_column, database.TORQUE_ALLOWED_COLUMNS)
 
-    execute(
-        queries.VERIFY_TORQUE_APPROVE.format(column=sql_column),
+    database.execute(
+        database.VERIFY_TORQUE_APPROVE.format(column=sql_column),
         {"value": "approve", "document": payload.document},
     )
 

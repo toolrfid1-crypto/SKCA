@@ -10,8 +10,7 @@ import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app import excel_store, permissions, queries
-from app.database import execute, fetch_dataframe, safe_column
+from app import database, excel_store, permissions
 from app.excel_store import ExcelBusyError
 from app.schemas import (
     ActionResponse,
@@ -92,7 +91,7 @@ def edit_check_sheet_action(
 # ============================================================================
 
 def _load_edit_verify_torque_docs(user: CurrentUser) -> list[dict]:
-    df = fetch_dataframe(queries.EDIT_VERIFY_TORQUE_PENDING)
+    df = database.fetch_dataframe(database.EDIT_VERIFY_TORQUE_PENDING)
     return permissions.build_edit_verify_torque_docs(
         df,
         is_admin=user.is_admin,
@@ -129,11 +128,11 @@ def edit_verify_torque_action(
             detail=f"คุณไม่มีสิทธิ์ดำเนินการเครื่องมือ '{payload.tool_id}'",
         )
 
-    sql_column = queries.resolve_column(payload.column, queries.TORQUE_COLUMN_MAP)
-    sql_column = safe_column(sql_column, queries.TORQUE_ALLOWED_COLUMNS)
+    sql_column = database.resolve_column(payload.column, database.TORQUE_COLUMN_MAP)
+    sql_column = database.safe_column(sql_column, database.TORQUE_ALLOWED_COLUMNS)
 
-    execute(
-        queries.EDIT_VERIFY_TORQUE_ACTION.format(column=sql_column),
+    database.execute(
+        database.EDIT_VERIFY_TORQUE_ACTION.format(column=sql_column),
         {"value": payload.action, "tool_id": payload.tool_id},
     )
 

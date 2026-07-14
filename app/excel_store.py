@@ -2,7 +2,7 @@
 excel_store.py -- ทุกอย่างที่คุยกับไฟล์ DataWebapp.xlsx อยู่ในไฟล์นี้
 
 ไฟล์ Excel เก็บ 2 sheet ที่เราใช้:
-  - sheet "Mail"           : รายชื่อ user, password, Line, CostCenter, Zone
+  - sheet "Mail"           : รายชื่อ user (อีเมล), Line, CostCenter, Zone
   - sheet "EditCheckSheet" : รายการขอแก้ไข check sheet ที่รออนุมัติ
 
 หมายเหตุเรื่องการเขียนไฟล์:
@@ -64,7 +64,6 @@ def load_users() -> dict[str, dict]:
     ผลลัพธ์หน้าตาแบบนี้:
         {
           "somchai.k@kubota.com": {
-              "password": "1234",
               "lines": ["CH", "MSC"],
               "costcenters": ["DY31010403"],
           },
@@ -84,9 +83,8 @@ def load_users() -> dict[str, dict]:
 
         entry = users.setdefault(
             username,
-            {"password": "", "lines": [], "costcenters": []},
+            {"lines": [], "costcenters": []},
         )
-        entry["password"] = str(row.get("Password", "")).strip()
 
         line = str(row.get("Line", "")).strip()
         if line and line != "nan" and line not in entry["lines"]:
@@ -97,7 +95,7 @@ def load_users() -> dict[str, dict]:
             entry["costcenters"].append(costcenter)
 
     # admin เป็น user พิเศษที่ไม่ได้อยู่ใน Excel -- เห็นทุก Line ทุก CostCenter
-    users["admin"] = {"password": "admin", "lines": [], "costcenters": []}
+    users["admin"] = {"lines": [], "costcenters": []}
     return users
 
 

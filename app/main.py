@@ -39,9 +39,6 @@ async def lifespan(_: FastAPI):
     else:
         logger.warning("SQL Server: เชื่อมต่อไม่ได้ -- endpoint ที่ใช้ SQL จะ error")
 
-    if not settings.REQUIRE_PASSWORD:
-        logger.warning("REQUIRE_PASSWORD=false -> ระบบไม่ตรวจสอบรหัสผ่านตอน login")
-
     yield
     logger.info("ปิด server")
 

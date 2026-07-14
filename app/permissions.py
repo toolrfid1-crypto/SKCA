@@ -45,13 +45,9 @@ def is_empty(value: Any) -> bool:
     return str(value).strip().lower() in _EMPTY_VALUES
 
 
-def _norm(value: Any) -> str:
-    """แปลงค่าเป็น string ตัวเล็ก ตัดช่องว่าง -- ใช้เทียบกับคำว่า 'approve'"""
-    return str(value).strip().lower()
-
-
 def _is_approved(value: Any) -> bool:
-    return _norm(value) == "approve"
+    """ช่องนี้ถูก approve แล้วหรือยัง -- เทียบแบบไม่สนตัวพิมพ์ใหญ่เล็ก/ช่องว่าง"""
+    return str(value).strip().lower() == "approve"
 
 
 # ============================================================================
